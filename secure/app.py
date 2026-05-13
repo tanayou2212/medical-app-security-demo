@@ -11,10 +11,10 @@ import os
 import time
 from typing import Annotated
 
+import bcrypt
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from passlib.context import CryptContext
 from pydantic import BaseModel
 
 app = FastAPI(title="Medical Records API (SECURE)")
@@ -27,12 +27,11 @@ JWT_TTL_SECONDS = 3600  # 1 hour
 
 # FIX: passwords are stored as bcrypt hashes, never plaintext.
 # Even if this dict leaks, raw passwords remain secret.
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
+# Hashes were pre-generated offline; passwords are "SecurePass1" and "NursePass2".
 MOCK_USERS: dict[str, str] = {
-    # username -> bcrypt hash of password
-    "dr_smith": pwd_context.hash("correct-horse-battery"),
-    "nurse_jones": pwd_context.hash("staple-blue-monday"),
+    # username -> bcrypt hash (cost factor 12) of password
+    "dr_smith":    "$2b$12$Fr123Sud4bVgYZxd92uuhuM1YYpZKL6wGEmFq7YsSao0scbG9s22q",
+    "nurse_jones": "$2b$12$Kdol2homZK70Ekv/YvdBguAKpKzRoiY7ujFkGXpBOJMozuDWTctAm",
 }
 
 # Same mock data as vulnerable/app.py — no real patient information.
@@ -50,7 +49,7 @@ bearer_scheme = HTTPBearer()
 # ---------------------------------------------------------------------------
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    return bcrypt.checkpw(plain.encode(), hashed.encode())
 
 
 def create_token(username: str) -> str:
