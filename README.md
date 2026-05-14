@@ -1,3 +1,5 @@
+[日本語版はこちら](README.ja.md)
+
 # Medical App Security Demo
 
 A hands-on security demonstration that shows how common API vulnerabilities appear in a medical records application and how to fix them. Each vulnerability is illustrated with a working exploit script and a paired secure implementation.
